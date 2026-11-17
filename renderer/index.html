@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
+  <title>NovaMail</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="../build/icon.png" alt="" width="26" height="26">
+        <span>NovaMail</span>
+      </div>
+
+      <div class="quick">
+        <button id="compose" class="btn primary" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Nouveau message
+        </button>
+      </div>
+
+      <div class="accounts" id="accounts"></div>
+
+      <nav class="folders" id="folders" aria-label="Dossiers"></nav>
+
+      <div class="sidebar-footer">
+        <button id="theme-toggle" class="link" type="button">Thème clair</button>
+        <button id="settings" class="link" type="button">Comptes et réglages</button>
+        <button id="open-novamail" class="link" type="button">Ouvrir NovaMail Web</button>
+        <span id="version" class="version"></span>
+      </div>
+    </aside>
+
+    <section class="list-pane">
+      <header class="list-head">
+        <div>
+          <h1 id="folder-title">Boîte de réception</h1>
+          <p id="sync-state" class="sync-state">Prêt</p>
+        </div>
+        <div class="head-actions">
+          <button id="read-all" class="icon-btn" type="button" title="Tout marquer comme lu" aria-label="Tout marquer comme lu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4 12 9 17 20 6"/><polyline points="4 6 9 11 14 6"/></svg>
+          </button>
+          <button id="refresh" class="icon-btn" type="button" title="Actualiser (F5)" aria-label="Actualiser">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><polyline points="21 3 21 9 15 9"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="search" type="search" placeholder="Rechercher dans les messages" autocomplete="off">
+      </div>
+      <div class="radar" id="radar" hidden></div>
+
+      <div class="list-loader" id="list-loader" hidden>
+        <img src="../build/icon.png" alt="" width="38" height="38">
+        <span class="spinner"></span>
+        <p>Chargement de la boîte…</p>
+      </div>
+      <ul class="messages" id="messages"></ul>
+      <div class="empty" id="list-empty" hidden>
+        <p id="list-empty-title">Aucun message</p>
+        <span id="list-empty-text">Choisis un dossier ou actualise.</span>
+        <a id="list-empty-link" class="empty-link" href="#" target="_blank" rel="noreferrer" hidden></a>
+        <button id="list-retry" class="btn" type="button" hidden>Réessayer</button>
+      </div>
+    </section>
+
+    <section class="reader" id="reader">
+      <div class="reader-empty" id="reader-empty">
+        <img src="../build/icon.png" alt="" width="56" height="56">
+        <h2>Sélectionne un message</h2>
+        <p>Les messages sont lus depuis le serveur IMAP et mis en cache pour une consultation hors ligne.</p>
+      </div>
+
+      <article class="reader-doc" id="reader-doc" hidden>
+        <header class="reader-head">
+          <h2 id="reader-subject"></h2>
+          <div class="reader-meta">
+            <span id="reader-from" class="from"></span>
+            <span id="reader-date" class="date"></span>
+          </div>
+          <div class="reader-actions">
+            <button id="reply" class="btn" type="button">Répondre</button>
+            <button id="reply-all" class="btn ghost" type="button">Répondre à tous</button>
+            <button id="forward" class="btn ghost" type="button">Transférer</button>
+            <button id="print" class="btn ghost" type="button">Imprimer</button>
+            <button id="snooze" class="btn ghost" type="button">Rappel</button>
+            <button id="toggle-flag" class="btn ghost" type="button">Important</button>
+            <button id="toggle-unread" class="btn ghost" type="button">Non lu</button>
+            <button id="delete" class="btn danger" type="button">Supprimer</button>
+          </div>
+        </header>
+        <div class="assistant" id="assistant" hidden></div>
+        <div class="reader-body" id="reader-body"></div>
+        <div id="attachments" class="attachments" hidden></div>
+      </article>
+    </section>
+  </div>
+
+  <div class="status" id="status" hidden></div>
+
+  <!-- Modale de composition -->
+  <div class="modal" id="compose-modal" hidden>
+    <div class="modal-card">
+      <header class="modal-head">
+        <h2 id="compose-title">Nouveau message</h2>
+        <button class="icon-btn" data-close type="button" aria-label="Fermer">✕</button>
+      </header>
+      <form id="compose-form" class="form">
+        <label>À<input name="to" type="text" placeholder="destinataire@exemple.fr" autocomplete="off" required></label>
+        <label>Cc<input name="cc" type="text" placeholder="optionnel" autocomplete="off"></label>
+        <label>Objet<input name="subject" type="text" placeholder="(sans objet)" autocomplete="off"></label>
+        <div class="editor-field">
+          <span class="editor-label">Message</span>
+          <div class="editor-toolbar" data-editor="compose-editor">
+            <button type="button" data-cmd="bold" title="Gras"><strong>G</strong></button>
+            <button type="button" data-cmd="italic" title="Italique"><em>I</em></button>
+            <button type="button" data-cmd="underline" title="Souligné"><u>U</u></button>
+            <button type="button" data-cmd="insertUnorderedList" title="Liste">• Liste</button>
+            <button type="button" data-link="1" title="Insérer un lien">Lien</button>
+            <button type="button" data-cmd="removeFormat" title="Effacer la mise en forme">Effacer</button>
+          </div>
+          <div class="compose-editor" id="compose-editor" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Écris ton message…"></div>
+        </div>
+        <p class="form-error" id="compose-error" hidden></p>
+        <footer class="modal-foot">
+          <span class="hint">Ctrl+Entrée pour envoyer</span>
+          <button type="button" class="btn ghost" data-close>Annuler</button>
+          <button type="submit" class="btn primary" id="send-btn">Envoyer</button>
+        </footer>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modale de compte -->
+  <div class="modal" id="snooze-modal" hidden>
+    <div class="modal-card">
+      <header class="modal-head">
+        <div>
+          <h2>Rappeler ce message</h2>
+          <p class="modal-sub" id="snooze-subject"></p>
+        </div>
+        <button class="icon-btn" type="button" data-close aria-label="Fermer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </header>
+      <div class="modal-body">
+        <div class="snooze-options">
+          <button class="btn" type="button" data-hours="3">Dans 3 heures</button>
+          <button class="btn" type="button" data-hours="24">Demain</button>
+          <button class="btn" type="button" data-hours="72">Dans 3 jours</button>
+          <button class="btn" type="button" data-hours="168">Dans 1 semaine</button>
+        </div>
+        <button class="btn ghost" id="snooze-clear" type="button" hidden>Annuler le rappel</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="account-modal" hidden>
+    <div class="modal-card wide">
+      <header class="modal-head">
+        <div>
+          <h2>Paramètres</h2>
+          <p class="modal-sub" id="settings-sub">Compte, serveurs et sécurité</p>
+        </div>
+        <button class="icon-btn" data-close type="button" aria-label="Fermer">✕</button>
+      </header>
+      <form id="account-form" class="form settings-form">
+        <section class="settings-section">
+          <h3 class="section-title">Identité</h3>
+          <div class="grid-2">
+            <label>Nom affiché<input name="name" type="text" placeholder="Raphaël" autocomplete="off"></label>
+            <label>Adresse e-mail<input name="email" type="email" placeholder="moi@exemple.fr" autocomplete="off" required></label>
+          </div>
+        </section>
+
+        <section class="settings-section">
+          <h3 class="section-title">Fournisseur</h3>
+          <label>Fournisseur
+            <select name="preset" id="preset">
+              <option value="custom">Personnalisé</option>
+              <option value="gmail">Gmail</option>
+              <option value="outlook">Outlook / Microsoft 365</option>
+              <option value="yahoo">Yahoo</option>
+              <option value="icloud">iCloud</option>
+              <option value="ovh">OVH</option>
+              <option value="free">Free</option>
+              <option value="orange">Orange</option>
+            </select>
+          </label>
+          <p class="settings-note">Choisis ton fournisseur pour remplir automatiquement les serveurs IMAP et SMTP.</p>
+        </section>
+
+        <section class="settings-section">
+          <h3 class="section-title">Serveurs</h3>
+          <div class="grid-2">
+            <label>Serveur IMAP<input name="imaphost" type="text" placeholder="imap.exemple.fr" autocomplete="off" required></label>
+            <label>Port IMAP<input name="imapport" type="number" min="1" max="65535" value="993" required></label>
+          </div>
+          <label class="check"><input type="checkbox" name="imapsecure" checked> IMAP SSL/TLS</label>
+
+          <div class="grid-2">
+            <label>Serveur SMTP<input name="smtphost" type="text" placeholder="smtp.exemple.fr" autocomplete="off" required></label>
+            <label>Port SMTP<input name="smtpport" type="number" min="1" max="65535" value="465" required></label>
+          </div>
+          <label class="check"><input type="checkbox" name="smtpsecure" checked> SMTP SSL/TLS</label>
+        </section>
+
+        <section class="settings-section">
+          <h3 class="section-title">Sécurité</h3>
+          <label>Mot de passe
+            <span class="password-wrap">
+              <input name="password" type="password" placeholder="mot de passe ou mot de passe d'application" autocomplete="off">
+              <button type="button" class="btn ghost small" id="toggle-password">Afficher</button>
+            </span>
+          </label>
+          <p class="note" id="account-note">Le mot de passe est chiffré par Windows (DPAPI) et reste sur cette machine.</p>
+        </section>
+
+        <section class="settings-section">
+          <h3 class="section-title">Signature</h3>
+          <p class="note">Ajoutée automatiquement à tes messages. Tu peux y mettre du gras, des listes et des liens cliquables.</p>
+          <input name="signature" type="hidden">
+          <div class="editor-toolbar" data-editor="signature-editor">
+            <button type="button" data-cmd="bold" title="Gras"><strong>G</strong></button>
+            <button type="button" data-cmd="italic" title="Italique"><em>I</em></button>
+            <button type="button" data-cmd="underline" title="Souligné"><u>U</u></button>
+            <button type="button" data-cmd="insertUnorderedList" title="Liste">• Liste</button>
+            <button type="button" data-link="1" title="Insérer un lien">Lien</button>
+            <button type="button" data-cmd="removeFormat" title="Effacer la mise en forme">Effacer</button>
+          </div>
+          <div class="compose-editor signature-editor" id="signature-editor" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Ton nom, ton site, tes liens…"></div>
+        </section>
+
+        <section class="settings-section" id="maintenance-section" hidden>
+          <h3 class="section-title">Maintenance</h3>
+          <div class="settings-row">
+            <div>
+              <strong>Cache local</strong>
+              <p class="settings-note">Supprime les messages copiés hors ligne pour ce compte. Ils seront rechargés depuis le serveur.</p>
+            </div>
+            <button type="button" class="btn ghost" id="clear-cache">Vider</button>
+          </div>
+        </section>
+
+        <p class="form-error" id="account-error" hidden></p>
+        <p class="form-ok" id="account-ok" hidden></p>
+
+        <footer class="modal-foot">
+          <button type="button" class="btn danger" id="delete-account" hidden>Supprimer le compte</button>
+          <span class="spacer"></span>
+          <button type="button" class="btn ghost" data-close>Annuler</button>
+          <button type="button" class="btn" id="test-account">Tester la connexion</button>
+          <button type="submit" class="btn primary">Enregistrer</button>
+        </footer>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

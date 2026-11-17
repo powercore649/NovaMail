@@ -20,6 +20,29 @@ Installation par utilisateur : raccourcis dans le menu Démarrer et sur le Burea
 - Mots de passe chiffrés par Windows (DPAPI), rien n'est envoyé à un serveur tiers
 - Version web/mobile responsive servie localement par `npm run web`
 
+## Code source
+
+```
+main.js            processus principal Electron (IPC, IMAP/SMTP)
+preload.js         pont sécurisé vers le renderer
+store.js           comptes et cache local
+web-server.js      serveur local du client web + proxy /api
+renderer/          interface de l'application Windows
+web/               client web/mobile autonome
+build/             icônes de l'installateur
+scripts/           outillage (icône, diagnostic)
+server/            version hébergée (Worker Cloudflare, NovaMail @novacorpbumpify.dpdns.org)
+```
+
+```bash
+npm install          # dépendances de l'application
+npm start            # lance l'app Electron
+npm run web          # client web local sur http://localhost:4173
+npm run dist         # installateur NSIS dans dist/
+```
+
+Le dossier `server/` contient le Worker déployé (inbox D1, adresses NovaMail, dossier Envoyés) ; ses secrets se configurent côté hébergement, jamais dans le dépôt.
+
 ## Configuration
 
 Windows 10 1809 ou plus récent. Gmail et Outlook exigent un mot de passe d'application.
