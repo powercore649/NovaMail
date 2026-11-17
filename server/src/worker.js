@@ -19,7 +19,7 @@ import {
   verifyWebhook,
 } from './novamail-mail.js';
 
-const SESSION_MAX_AGE = 7200;
+const SESSION_MAX_AGE = 315360000;
 
 const DOWNLOAD_TARGET =
   'https://github.com/powercore649/NovaMail/releases/download/v1.0.0/NovaMail-Setup-arm64.exe';
@@ -112,7 +112,7 @@ async function getSession(request, env) {
   if (!token) return null;
   try {
     const payload = await open(token, env.NOVAMAIL_KEY);
-    if (!payload || payload.exp < Date.now()) return null;
+    if (!payload) return null;
     return payload;
   } catch {
     return null;
@@ -180,7 +180,7 @@ async function handleApi(request, env, url) {
       }
 
       const token = await seal(
-        { kind: 'novamail', provider: 'novamail', email: profile.address, name: profile.name, exp: Date.now() + SESSION_MAX_AGE * 1000 },
+        { kind: 'novamail', provider: 'novamail', email: profile.address, name: profile.name },
         env.NOVAMAIL_KEY,
       );
       return json(
@@ -205,7 +205,7 @@ async function handleApi(request, env, url) {
       return json(401, { error: error.message });
     }
 
-    const token = await seal({ ...config, pass: password, exp: Date.now() + SESSION_MAX_AGE * 1000 }, env.NOVAMAIL_KEY);
+    const token = await seal({ ...config, pass: password }, env.NOVAMAIL_KEY);
     return json(
       200,
       { email: config.email, name: config.name || config.email.split('@')[0], imap: config.imap, smtp: config.smtp },

@@ -12,7 +12,6 @@ const REQUESTED_PORT = Number(process.env.PORT);
 const PORT = Number.isInteger(REQUESTED_PORT) && REQUESTED_PORT > 0 ? REQUESTED_PORT : 8787;
 const HOST = process.env.HOST || '0.0.0.0';
 const ROOT = path.join(__dirname, 'web');
-const SESSION_TTL = 2 * 60 * 60 * 1000;
 
 const sessions = new Map();
 const MIME = {
@@ -165,10 +164,7 @@ function getSession(req) {
   if (!token) return null;
   const session = sessions.get(token);
   if (!session) return null;
-  if (Date.now() - session.at > SESSION_TTL) {
-    sessions.delete(token);
-    return null;
-  }
+  /* Pas d'expiration de session : on garde la session tant que le serveur tourne. */
   session.at = Date.now();
   return session;
 }
@@ -218,7 +214,7 @@ async function api(req, res, url) {
     const token = crypto.randomBytes(24).toString('hex');
     sessions.set(token, { config, password, at: Date.now() });
 
-    res.setHeader('set-cookie', 'novamail=' + token + '; HttpOnly; SameSite=Lax; Path=/; Max-Age=7200');
+    res.setHeader('set-cookie', 'novamail=' + token + '; HttpOnly; SameSite=Lax; Path=/; Max-Age=315360000');
     return json(res, 200, { email: config.email, name: config.name || config.email.split('@')[0] });
   }
 

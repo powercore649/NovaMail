@@ -1,4 +1,4 @@
-// node_modules/postal-mime/src/decode-strings.js
+// ../../REZO-craft/novamail-web/node_modules/postal-mime/src/decode-strings.js
 var textEncoder = new TextEncoder();
 var base64Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 var base64Lookup = new Uint8Array(256);
@@ -202,7 +202,7 @@ function decodeParameterValueContinuations(header) {
   });
 }
 
-// node_modules/postal-mime/src/pass-through-decoder.js
+// ../../REZO-craft/novamail-web/node_modules/postal-mime/src/pass-through-decoder.js
 var PassThroughDecoder = class {
   constructor() {
     this.chunks = [];
@@ -216,7 +216,7 @@ var PassThroughDecoder = class {
   }
 };
 
-// node_modules/postal-mime/src/base64-decoder.js
+// ../../REZO-craft/novamail-web/node_modules/postal-mime/src/base64-decoder.js
 var Base64Decoder = class {
   constructor(opts) {
     opts = opts || {};
@@ -252,7 +252,7 @@ var Base64Decoder = class {
   }
 };
 
-// node_modules/postal-mime/src/qp-decoder.js
+// ../../REZO-craft/novamail-web/node_modules/postal-mime/src/qp-decoder.js
 var VALID_QP_REGEX = /^=[a-f0-9]{2}$/i;
 var QP_SPLIT_REGEX = /(?==[a-f0-9]{2})/i;
 var SOFT_LINE_BREAK_REGEX = /=\r?\n/g;
@@ -347,7 +347,7 @@ var QPDecoder = class {
   }
 };
 
-// node_modules/postal-mime/src/mime-node.js
+// ../../REZO-craft/novamail-web/node_modules/postal-mime/src/mime-node.js
 var defaultDecoder = getDecoder();
 var MimeNode = class {
   constructor(options) {
@@ -623,7 +623,7 @@ var MimeNode = class {
   }
 };
 
-// node_modules/postal-mime/src/html-entities.js
+// ../../REZO-craft/novamail-web/node_modules/postal-mime/src/html-entities.js
 var htmlEntities = {
   "&AElig": "\xC6",
   "&AElig;": "\xC6",
@@ -2859,7 +2859,7 @@ var htmlEntities = {
 };
 var html_entities_default = htmlEntities;
 
-// node_modules/postal-mime/src/text-format.js
+// ../../REZO-craft/novamail-web/node_modules/postal-mime/src/text-format.js
 function decodeHTMLEntities(str) {
   return str.replace(/&(#\d+|#x[a-f0-9]+|[a-z]+\d*);?/gi, (match, entity) => {
     if (typeof html_entities_default[match] === "string") {
@@ -3080,7 +3080,7 @@ function formatHtmlHeader(message) {
   return template;
 }
 
-// node_modules/postal-mime/src/address-parser.js
+// ../../REZO-craft/novamail-web/node_modules/postal-mime/src/address-parser.js
 function _handleAddress(tokens, depth) {
   let isGroup = false;
   let state = "text";
@@ -3366,7 +3366,7 @@ function addressParser(str, options) {
 }
 var address_parser_default = addressParser;
 
-// node_modules/postal-mime/src/base64-encoder.js
+// ../../REZO-craft/novamail-web/node_modules/postal-mime/src/base64-encoder.js
 function base64ArrayBuffer(arrayBuffer) {
   var base64 = "";
   var encodings = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -3399,7 +3399,7 @@ function base64ArrayBuffer(arrayBuffer) {
   return base64;
 }
 
-// node_modules/postal-mime/src/postal-mime.js
+// ../../REZO-craft/novamail-web/node_modules/postal-mime/src/postal-mime.js
 var MAX_NESTING_DEPTH = 256;
 var MAX_HEADERS_SIZE = 2 * 1024 * 1024;
 var MAX_RFC822_NESTING_DEPTH = 10;
@@ -4824,7 +4824,7 @@ async function handleInbound(env, payload) {
 }
 
 // src/worker.js
-var SESSION_MAX_AGE = 7200;
+var SESSION_MAX_AGE = 31536e4;
 var DOWNLOAD_TARGET = "https://github.com/powercore649/NovaMail/releases/download/v1.0.0/NovaMail-Setup-arm64.exe";
 var DOWNLOAD_PATHS = /* @__PURE__ */ new Set(["/novamail.download", "/novamail.download.exe", "/telecharger"]);
 function authPassword(host, password) {
@@ -4906,7 +4906,7 @@ async function getSession(request, env) {
   if (!token) return null;
   try {
     const payload = await open(token, env.NOVAMAIL_KEY);
-    if (!payload || payload.exp < Date.now()) return null;
+    if (!payload) return null;
     return payload;
   } catch {
     return null;
@@ -4964,7 +4964,7 @@ async function handleApi(request, env, url) {
         return json(401, { error: error.message });
       }
       const token2 = await seal(
-        { kind: "novamail", provider: "novamail", email: profile.address, name: profile.name, exp: Date.now() + SESSION_MAX_AGE * 1e3 },
+        { kind: "novamail", provider: "novamail", email: profile.address, name: profile.name },
         env.NOVAMAIL_KEY
       );
       return json(
@@ -4985,7 +4985,7 @@ async function handleApi(request, env, url) {
     } catch (error) {
       return json(401, { error: error.message });
     }
-    const token = await seal({ ...config, pass: password, exp: Date.now() + SESSION_MAX_AGE * 1e3 }, env.NOVAMAIL_KEY);
+    const token = await seal({ ...config, pass: password }, env.NOVAMAIL_KEY);
     return json(
       200,
       { email: config.email, name: config.name || config.email.split("@")[0], imap: config.imap, smtp: config.smtp },
